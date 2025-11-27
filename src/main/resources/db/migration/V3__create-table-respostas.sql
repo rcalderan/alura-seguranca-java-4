@@ -1,5 +1,5 @@
 CREATE TABLE respostas (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     mensagem TEXT NOT NULL,
     autor VARCHAR(255) NOT NULL,
     data_criacao TIMESTAMP NOT NULL,
