@@ -1,4 +1,4 @@
-package br.com.forum_hub.domain.autenticacao;
+package br.com.forum_hub.domain.autenticacao.model;
 
 import jakarta.validation.constraints.NotBlank;
 

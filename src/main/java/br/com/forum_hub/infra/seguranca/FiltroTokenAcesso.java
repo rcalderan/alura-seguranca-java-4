@@ -1,6 +1,6 @@
 package br.com.forum_hub.infra.seguranca;
 
-import br.com.forum_hub.domain.autenticacao.TokenService;
+import br.com.forum_hub.domain.autenticacao.service.TokenService;
 import br.com.forum_hub.domain.usuario.Usuario;
 import br.com.forum_hub.domain.usuario.UsuarioRepository;
 import jakarta.servlet.FilterChain;

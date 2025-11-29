@@ -1,6 +1,6 @@
 package br.com.forum_hub.controller;
 
-import br.com.forum_hub.domain.autenticacao.service.github.LoginGithubService;
+import br.com.forum_hub.domain.autenticacao.service.meta.LoginMetaService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -14,22 +14,22 @@ import org.springframework.web.bind.annotation.RestController;
 import java.net.URI;
 import java.util.UUID;
 
-
+import static br.com.forum_hub.domain.autenticacao.constants.OauthConstants.OAUTH_STATE_NAME;
 
 @RestController
-@RequestMapping("/login/github")
-public class GithubLoginController {
-    private final String OAUTH_STATE_NAME = "oauth_state";
+@RequestMapping("login/meta")
+public class MetaLoginController {
+
     @Autowired
-    private LoginGithubService loginGithubService;
+    private LoginMetaService loginMetaService;
 
     @GetMapping
-    public ResponseEntity<Void> githubRedirect(HttpSession session){
+    public ResponseEntity<Void> metaRedirect(HttpSession session){
 
-        var state = generateState();
-
+        var state = UUID.randomUUID().toString();
         session.setAttribute(OAUTH_STATE_NAME, state);
-        var url = loginGithubService.authorizeUrl(state);
+
+        var url = loginMetaService.authorizeUrl(state);
         var headers = new HttpHeaders();
         headers.setLocation(URI.create(url));
 
@@ -37,17 +37,10 @@ public class GithubLoginController {
     }
 
 
-    @GetMapping("/autorizado")
-    public ResponseEntity<String> getToken(@RequestParam String code, @RequestParam String state, HttpSession session){
-        String expectedState = (String) session.getAttribute(OAUTH_STATE_NAME);
-
-        var token = loginGithubService.getAccessToken(code);
+    @GetMapping("/authorized")
+    public ResponseEntity<String> getMetaToken(@RequestParam String code){
+        var token = loginMetaService.getAccessToken(code);
         return ResponseEntity.ok(token);
-    }
-
-
-    private String generateState(){
-        return UUID.randomUUID().toString();
     }
 
 }

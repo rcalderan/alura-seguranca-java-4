@@ -1,16 +1,15 @@
 package br.com.forum_hub.controller;
 
-import br.com.forum_hub.domain.autenticacao.DadosLogin;
-import br.com.forum_hub.domain.autenticacao.DadosRefreshToken;
-import br.com.forum_hub.domain.autenticacao.DadosToken;
-import br.com.forum_hub.domain.autenticacao.TokenService;
+import br.com.forum_hub.domain.autenticacao.model.DadosLogin;
+import br.com.forum_hub.domain.autenticacao.model.DadosRefreshToken;
+import br.com.forum_hub.domain.autenticacao.model.DadosToken;
+import br.com.forum_hub.domain.autenticacao.service.TokenService;
 import br.com.forum_hub.domain.usuario.Usuario;
 import br.com.forum_hub.domain.usuario.UsuarioRepository;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
