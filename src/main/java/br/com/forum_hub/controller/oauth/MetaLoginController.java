@@ -1,4 +1,4 @@
-package br.com.forum_hub.controller;
+package br.com.forum_hub.controller.oauth;
 
 import br.com.forum_hub.domain.autenticacao.service.meta.LoginMetaService;
 import jakarta.servlet.http.HttpSession;
@@ -38,7 +38,12 @@ public class MetaLoginController {
 
 
     @GetMapping("/authorized")
-    public ResponseEntity<String> getMetaToken(@RequestParam String code){
+    public ResponseEntity<String> getMetaToken(@RequestParam String code, @RequestParam String state, HttpSession session){
+        String expectedState = (String) session.getAttribute(OAUTH_STATE_NAME);
+        if (!state.equals(expectedState)) {
+            System.out.println("State inválido! Possível ataque CSRF.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
         var token = loginMetaService.getAccessToken(code);
         return ResponseEntity.ok(token);
     }

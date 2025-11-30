@@ -1,6 +1,6 @@
-package br.com.forum_hub.controller;
+package br.com.forum_hub.controller.oauth;
 
-import br.com.forum_hub.domain.autenticacao.service.github.LoginGithubService;
+import br.com.forum_hub.domain.autenticacao.service.google.LoginGoogleService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -14,22 +14,21 @@ import org.springframework.web.bind.annotation.RestController;
 import java.net.URI;
 import java.util.UUID;
 
-
-
 @RestController
-@RequestMapping("/login/github")
-public class GithubLoginController {
+@RequestMapping("/login/google")
+public class GoogleLoginController {
+
     private final String OAUTH_STATE_NAME = "oauth_state";
     @Autowired
-    private LoginGithubService loginGithubService;
+    private LoginGoogleService loginGoogleService;
 
     @GetMapping
     public ResponseEntity<Void> githubRedirect(HttpSession session){
 
-        var state = generateState();
+        var state = UUID.randomUUID().toString();
 
         session.setAttribute(OAUTH_STATE_NAME, state);
-        var url = loginGithubService.authorizeUrl(state);
+        var url = loginGoogleService.authorizeUrl(state);
         var headers = new HttpHeaders();
         headers.setLocation(URI.create(url));
 
@@ -37,17 +36,15 @@ public class GithubLoginController {
     }
 
 
-    @GetMapping("/autorizado")
+    @GetMapping("/authorized")
     public ResponseEntity<String> getToken(@RequestParam String code, @RequestParam String state, HttpSession session){
         String expectedState = (String) session.getAttribute(OAUTH_STATE_NAME);
+        if (!state.equals(expectedState)) {
+            System.out.println("State inválido! Possível ataque CSRF.");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
 
-        var token = loginGithubService.getAccessToken(code);
+        var token = loginGoogleService.getAccessToken(code);
         return ResponseEntity.ok(token);
     }
-
-
-    private String generateState(){
-        return UUID.randomUUID().toString();
-    }
-
 }
