@@ -3,13 +3,16 @@ package br.com.forum_hub.domain.autenticacao.service.github;
 
 import br.com.forum_hub.domain.autenticacao.constants.OauthConstants;
 import br.com.forum_hub.domain.autenticacao.interfaces.IOauthLogin;
+import br.com.forum_hub.domain.autenticacao.model.DadosEmail;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
-import java.net.URI;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Optional;
 
 
 @Service
@@ -41,8 +44,8 @@ public class LoginGithubService implements IOauthLogin{
     }
 
     @Override
-    public String getAccessToken(String code) {
-        return restClient.post()
+    public String authenticate(String code) {
+        var response =  restClient.post()
                 .uri(OauthConstants.GITHUB_TOKEN_URL)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
@@ -53,7 +56,47 @@ public class LoginGithubService implements IOauthLogin{
                         OauthConstants.REDIRECT_URI, redirectUrl
                 ))
                 .retrieve()
+                .body(Map.class);
+        assert response != null;
+        return response.get("access_token").toString();
+    }
+
+    public String getUser(String code){
+        var token = authenticate(code);
+
+        var headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+
+        var response =  restClient.get()
+                .uri("https://api.github.com/user")
+                .headers(httpHeaders -> httpHeaders.addAll(headers))
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
                 .body(String.class);
+
+        return response;
+    }
+
+    public String getEmail(String code){
+        var token = authenticate(code);
+
+        var headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+
+        var response =  restClient.get()
+                .uri("https://api.github.com/user/emails")
+                .headers(httpHeaders -> httpHeaders.addAll(headers))
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .body(DadosEmail[].class);
+
+        return Optional.ofNullable(response).stream()
+                .flatMap(Arrays::stream)
+                .filter(DadosEmail::primary)
+                .map(DadosEmail::email)
+                .findFirst()
+                .orElse(null);
+
     }
 
 }

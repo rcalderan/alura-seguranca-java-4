@@ -4,6 +4,6 @@ public interface IOauthLogin {
 
     String authorizeUrl(String state);
 
-    String getAccessToken(String code);
+    String authenticate(String code);
 
 }

@@ -44,7 +44,7 @@ public class MetaLoginController {
             System.out.println("State inválido! Possível ataque CSRF.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
-        var token = loginMetaService.getAccessToken(code);
+        var token = loginMetaService.authenticate(code);
         return ResponseEntity.ok(token);
     }
 

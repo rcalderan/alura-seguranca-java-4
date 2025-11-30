@@ -44,7 +44,7 @@ public class GoogleLoginController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        var token = loginGoogleService.getAccessToken(code);
+        var token = loginGoogleService.authenticate(code);
         return ResponseEntity.ok(token);
     }
 }

@@ -39,7 +39,7 @@ public class LoginGoogleService implements IOauthLogin {
     }
 
     @Override
-    public String getAccessToken(String code) {
+    public String authenticate(String code) {
         return restClient.post()
                 .uri("https://oauth2.googleapis.com/token")
                 .contentType(MediaType.APPLICATION_JSON)

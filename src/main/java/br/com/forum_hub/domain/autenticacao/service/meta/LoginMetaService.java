@@ -37,7 +37,7 @@ public class LoginMetaService implements IOauthLogin {
     }
 
     @Override
-    public String getAccessToken(String code) {
+    public String authenticate(String code) {
         return restClient.post()
                 .uri(OauthConstants.META_TOKEN_URL)
                 .contentType(MediaType.APPLICATION_JSON)
