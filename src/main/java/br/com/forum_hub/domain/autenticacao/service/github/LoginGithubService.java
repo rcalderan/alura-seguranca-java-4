@@ -38,7 +38,7 @@ public class LoginGithubService implements IOauthLogin{
                 OauthConstants.CLIENT_ID, appId,
                 OauthConstants.REDIRECT_URI, redirectUrl,
                 OauthConstants.STATE, state,
-                OauthConstants.SCOPE, "read:user,user:email"
+                OauthConstants.SCOPE, "read:user,user:email,public_repo"
         );
 
     }
@@ -90,12 +90,45 @@ public class LoginGithubService implements IOauthLogin{
                 .retrieve()
                 .body(DadosEmail[].class);
 
+        var repositories =  restClient.get()
+                .uri("https://api.github.com/user/repos")
+                .headers(httpHeaders -> httpHeaders.addAll(headers))
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .body(String.class);
+        System.out.println(repositories);
+
         return Optional.ofNullable(response).stream()
                 .flatMap(Arrays::stream)
                 .filter(DadosEmail::primary)
                 .map(DadosEmail::email)
                 .findFirst()
                 .orElse(null);
+
+    }
+
+    public String getRepositories(String code){
+        var token = authenticate(code);
+
+        var headers = new HttpHeaders();
+        headers.setBearerAuth(token);
+
+        var repositories =  restClient.get()
+                .uri("https://api.github.com/user/repos")
+                .headers(httpHeaders -> httpHeaders.addAll(headers))
+                .accept(MediaType.APPLICATION_JSON)
+                .retrieve()
+                .body(String.class);
+        System.out.println(repositories);
+
+        return repositories;
+
+//        return Optional.ofNullable(repositories).stream()
+//                .flatMap(Arrays::stream)
+//                .filter(DadosEmail::primary)
+//                .map(DadosEmail::email)
+//                .findFirst()
+//                .orElse(null);
 
     }
 

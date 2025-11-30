@@ -1,11 +1,17 @@
 package br.com.forum_hub.controller.oauth;
 
+import br.com.forum_hub.domain.autenticacao.model.DadosToken;
+import br.com.forum_hub.domain.autenticacao.service.TokenService;
 import br.com.forum_hub.domain.autenticacao.service.google.LoginGoogleService;
+import br.com.forum_hub.domain.usuario.Usuario;
+import br.com.forum_hub.domain.usuario.UsuarioRepository;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,8 +28,14 @@ public class GoogleLoginController {
     @Autowired
     private LoginGoogleService loginGoogleService;
 
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private TokenService tokenService;
+
     @GetMapping
-    public ResponseEntity<Void> githubRedirect(HttpSession session){
+    public ResponseEntity<Void> googleRedirect(HttpSession session){
 
         var state = UUID.randomUUID().toString();
 
@@ -37,14 +49,23 @@ public class GoogleLoginController {
 
 
     @GetMapping("/authorized")
-    public ResponseEntity<String> getToken(@RequestParam String code, @RequestParam String state, HttpSession session){
+    public ResponseEntity<DadosToken> authenticateUser(@RequestParam String code, @RequestParam String state, HttpSession session){
         String expectedState = (String) session.getAttribute(OAUTH_STATE_NAME);
         if (!state.equals(expectedState)) {
             System.out.println("State inválido! Possível ataque CSRF.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         }
 
-        var token = loginGoogleService.authenticate(code);
-        return ResponseEntity.ok(token);
+        var email = loginGoogleService.getEmail(code);
+
+        Usuario usuario = usuarioRepository.findByEmailIgnoreCaseAndVerificadoTrue(email).orElseThrow();
+
+        var authentication = new UsernamePasswordAuthenticationToken(usuario, null, usuario.getAuthorities());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        String tokenAcesso = tokenService.gerarToken((Usuario) authentication.getPrincipal());
+        String refreshToken = tokenService.gerarRefreshToken((Usuario) authentication.getPrincipal());
+
+        return ResponseEntity.ok(new DadosToken(tokenAcesso, refreshToken));
     }
 }
