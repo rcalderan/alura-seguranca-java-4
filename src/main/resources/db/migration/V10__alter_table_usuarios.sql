@@ -1,11 +1,3 @@
---initial user pass=12345678
-
-INSERT INTO usuarios (email, senha, nome_completo, nome_usuario, verificado, ativo)
-VALUES (
-    'richardcck@hotmail.com',
-    '$2y$10$/8EepTsy2reD5vKLPGn.gOXfFs5b6jjoaaWx/79kvdAfu0U0f4vmS',
-    'Usuario',
-    'usuario',
-    TRUE,
-    TRUE
-);
+ALTER TABLE usuarios
+    ADD COLUMN secret VARCHAR(64),
+    ADD COLUMN a2f_ativa BOOLEAN NOT NULL DEFAULT FALSE;

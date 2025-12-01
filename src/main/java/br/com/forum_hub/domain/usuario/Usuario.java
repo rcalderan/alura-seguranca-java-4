@@ -36,6 +36,8 @@ public class Usuario implements UserDetails {
     private String token;
     private LocalDateTime expiracaoToken;
     private Boolean ativo;
+    private String secret;
+    private Boolean a2fAtiva;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "usuarios_perfis",
                 joinColumns = @JoinColumn(name = "usuario_id"),
@@ -56,6 +58,7 @@ public class Usuario implements UserDetails {
         this.token = UUID.randomUUID().toString();
         this.expiracaoToken = LocalDateTime.now().plusMinutes(30);
         this.ativo = false;
+        this.a2fAtiva = false;
         this.perfis.add(perfil);
     }
 
@@ -98,6 +101,13 @@ public class Usuario implements UserDetails {
         return token;
     }
 
+    public void setSecret(String secret){
+        this.secret = secret;
+    }
+    public String getSecret(){
+        return this.secret;
+    }
+
     public void verificar() {
         if(expiracaoToken.isBefore(LocalDateTime.now())){
             throw new RegraDeNegocioException("Link de verificação expirou!");
@@ -137,4 +147,11 @@ public class Usuario implements UserDetails {
         this.ativo = true;
     }
 
+    public boolean is2FAActive() {
+        return this.a2fAtiva;
+    }
+
+    public void activate2FA() {
+        this.a2fAtiva = true;
+    }
 }

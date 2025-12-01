@@ -6,6 +6,8 @@ import br.com.forum_hub.domain.perfil.PerfilRepository;
 import br.com.forum_hub.infra.email.EmailService;
 import br.com.forum_hub.infra.exception.RegraDeNegocioException;
 import br.com.forum_hub.infra.seguranca.HierarquiaService;
+import br.com.forum_hub.infra.seguranca.TotpService;
+import com.atlassian.onetime.service.TOTPService;
 import jakarta.transaction.Transactional;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,12 +25,15 @@ public class UsuarioService implements UserDetailsService {
     private final PerfilRepository perfilRepository;
     private final HierarquiaService hierarquiaService;
 
-    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, EmailService emailService, PerfilRepository perfilRepository, HierarquiaService hierarquiaService) {
+    private final TotpService totpService;
+
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder, EmailService emailService, PerfilRepository perfilRepository, HierarquiaService hierarquiaService, TotpService totpService) {
         this.usuarioRepository = usuarioRepository;
         this.passwordEncoder = passwordEncoder;
         this.emailService = emailService;
         this.perfilRepository = perfilRepository;
         this.hierarquiaService = hierarquiaService;
+        this.totpService = totpService;
     }
 
     @Override
@@ -100,5 +105,28 @@ public class UsuarioService implements UserDetailsService {
     public void reativarUsuario(Long id) {
         var usuario = usuarioRepository.findById(id).orElseThrow();
         usuario.reativar();
+    }
+
+    @Transactional
+    public String qrCodeUrlGenerate(Usuario usuario) {
+        var secret = totpService.secretGenerate();
+        usuario.setSecret(secret);
+        usuarioRepository.save(usuario);
+        return totpService.qrCodeGenerate(usuario);
+    }
+
+    @Transactional
+    public void activate2FA(String code, Usuario usuario) {
+        if(usuario.is2FAActive()){
+            throw new RegraDeNegocioException("Autenticação de dois fatores já está ativa");
+        }
+
+        var isValid = totpService.codeValidate(code, usuario);
+        if(!isValid){
+            throw new RegraDeNegocioException("Autenticação de invalida");
+        }
+
+        usuario.activate2FA();
+        usuarioRepository.save(usuario);
     }
 }

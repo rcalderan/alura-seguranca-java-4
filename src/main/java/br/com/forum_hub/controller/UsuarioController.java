@@ -78,4 +78,15 @@ public class UsuarioController {
         var usuario = usuarioService.adicionarPerfil(id, dados);
         return ResponseEntity.ok(new DadosListagemUsuario(usuario));
     }
+
+    @PatchMapping("configure-2fa")
+    public ResponseEntity<String> qrCodeGenerate(@AuthenticationPrincipal Usuario usuario){
+        var url = usuarioService.qrCodeUrlGenerate(usuario);
+        return ResponseEntity.ok(url);
+    }
+    @PatchMapping("activate-3fa")
+    public ResponseEntity<String> activate2FA(@RequestParam String code, @AuthenticationPrincipal Usuario usuario){
+        usuarioService.activate2FA(code, usuario);
+        return ResponseEntity.noContent().build();
+    }
 }
